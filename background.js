@@ -885,50 +885,62 @@ var myHeaders = new Headers();
 myHeaders.append('accept', '*/*');
 
 function webhook(data) {
-    // console.log(search_data[data]);
-    data = JSON.stringify(search_data[data]);
-    // console.log(data);
-    chrome.storage.local.get(["webhook_setting"], function(settings){
-        if(!settings || !settings["webhook_setting"] || settings["webhook_setting"] == {} || settings["webhook_setting"] ==undefined){
-            // console.log('获取webhook_setting失败');
-            return;
-        }
-        
-        let webhookInit = {
-            method: 'GET',
-            headers: myHeaders,
-            mode: 'cors',
-            cache: 'default',
-            credentials: 'include'
-        };
-        let webhookHeaders = new Headers();
-        if (settings["webhook_setting"]['url']!="") {
-            var url = settings["webhook_setting"]['url'];
-            if (settings["webhook_setting"]['method']=="GET"){
-                url = url + "?" +  settings["webhook_setting"]['arg'] + "=" + data;
-            }else if (settings["webhook_setting"]['method']=="POST"){
-                webhookHeaders.append("Content-Type", "application/json");
-                webhookInit['method'] = "POST";
-                if (settings["webhook_setting"]['arg']!=""){
-                    webhookInit['body'] = settings["webhook_setting"]['arg'] + "=" + data
-                }else{
-                    webhookInit['body'] = data;
-                }
-            }else{
-                console.log("webhook method error:"+settings["webhook_setting"]['method']);
-            }
-            if (settings["webhook_setting"]['headers']!={}){
-                for (let i in settings["webhook_setting"]['headers']) {
-                    webhookHeaders.append(i,settings["webhook_setting"]['headers'][i]);
-                }
-            }
-            webhookInit["headers"] = webhookHeaders;
-            let webhookRequest = new Request(url, webhookInit);
-            // console.log(webhookRequest);
-            fetch(webhookRequest, webhookInit).then(function(response) {
-                // console.log(response);
-            }).catch(err=>{ console.log("webhook fetch error",err)});
-        }
+
+    // 先检查是否启动WebHook by vvak4
+    chrome.storage.local.get(["WebhookStatus"], function(settings){
+      if(!settings || !settings["WebhookStatus"] || settings["WebhookStatus"] ==undefined){
+          // console.log(settings);
+          console.log('WebhookStatus 为False 不启动Webhook功能');
+          return;
+      }
+      console.log('WebhookStatus 为 True ,启动Webhook功能');
+
+      
+      // console.log(search_data[data]);
+      data = JSON.stringify(search_data[data]);
+      // console.log(data);
+      chrome.storage.local.get(["webhook_setting"], function(settings){
+          if(!settings || !settings["webhook_setting"] || settings["webhook_setting"] == {} || settings["webhook_setting"] ==undefined){
+              // console.log('获取webhook_setting失败');
+              return;
+          }
+          
+          let webhookInit = {
+              method: 'GET',
+              headers: myHeaders,
+              mode: 'cors',
+              cache: 'default',
+              credentials: 'include'
+          };
+          let webhookHeaders = new Headers();
+          if (settings["webhook_setting"]['url']!="") {
+              var url = settings["webhook_setting"]['url'];
+              if (settings["webhook_setting"]['method']=="GET"){
+                  url = url + "?" +  settings["webhook_setting"]['arg'] + "=" + data;
+              }else if (settings["webhook_setting"]['method']=="POST"){
+                  webhookHeaders.append("Content-Type", "application/json");
+                  webhookInit['method'] = "POST";
+                  if (settings["webhook_setting"]['arg']!=""){
+                      webhookInit['body'] = settings["webhook_setting"]['arg'] + "=" + data
+                  }else{
+                      webhookInit['body'] = data;
+                  }
+              }else{
+                  console.log("webhook method error:"+settings["webhook_setting"]['method']);
+              }
+              if (settings["webhook_setting"]['headers']!={}){
+                  for (let i in settings["webhook_setting"]['headers']) {
+                      webhookHeaders.append(i,settings["webhook_setting"]['headers'][i]);
+                  }
+              }
+              webhookInit["headers"] = webhookHeaders;
+              let webhookRequest = new Request(url, webhookInit);
+              // console.log(webhookRequest);
+              fetch(webhookRequest, webhookInit).then(function(response) {
+                  // console.log(response);
+              }).catch(err=>{ console.log("webhook fetch error",err)});
+          }
+      });
     });
 }
 

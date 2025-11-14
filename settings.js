@@ -110,6 +110,16 @@ document.getElementById("settingSafeMode").onclick=function () {
 	});
 }
 
+// WebHook开关页面切换和存储 by vvak4
+document.getElementById("WebhookStatus").onclick=function () {
+	// var webhook_setting = {};
+	chrome.storage.local.get(["WebhookStatus"], function(settings){
+		console.log(settings);
+		chrome.storage.local.set({"WebhookStatus": settings["WebhookStatus"]==true ? false : true});
+		document.getElementById('WebhookStatus').textContent = settings["WebhookStatus"]==true ? chrome.i18n.getMessage("settingClosed") : chrome.i18n.getMessage("settingOpened");
+	});
+}
+
 
 chrome.storage.local.get(["webhook_setting"], function(settings){
 	// console.log(settings);
@@ -139,5 +149,14 @@ chrome.storage.local.get(["settingSafeMode"], function(settings){
 chrome.storage.local.get(["allowlist"], function(allowlist){
 	if(allowlist && allowlist["allowlist"]){
 		document.getElementById('allowlist').textContent = allowlist["allowlist"].join('\n');
+	}
+});
+
+// 启动插件时，获取到存储在游览器中的WebHook是否启动的配置 by vvak4
+chrome.storage.local.get(["WebhookStatus"], function(settings){
+	document.getElementById('WebhookStatus').textContent = settings["WebhookStatus"]==true ? chrome.i18n.getMessage("settingOpened") : chrome.i18n.getMessage("settingClosed");
+	if(settings["WebhookStatus"]==null){
+		chrome.storage.local.set({"WebhookStatus": false});
+		document.getElementById('WebhookStatus').textContent = chrome.i18n.getMessage("settingClosed");
 	}
 });
