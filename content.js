@@ -71,9 +71,12 @@
                 }
             }
             tmp_target_list.pop(href)
+            
             chrome.runtime.sendMessage({greeting: "find",data: target_list, current: href, source: source});
         });
-    
+        
+
+
         function is_script(u){
             if(script_src){
                 for(var i=0;i<script_src.length;i++){
@@ -368,6 +371,7 @@ function show_info(result_data) {
         }
     }
 }
+
 function get_info() {
     chrome.runtime.sendMessage({greeting: "get", current: window.location.href}, function(result_data) {
         let taskstatus = document.getElementById('findsomething_taskstatus');

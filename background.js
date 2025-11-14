@@ -1058,8 +1058,15 @@ chrome.runtime.onMessage.addListener(
                     // search_data[request.current]['tasklist'].push(0);
                     // console.log(response);
                     response.text().then(function(text) {
+                    
+                    // 针对变量混淆编码，做预先的解码工作。 by vvak4
+                    text = decodeHexString(text);
+                    text = decodeUnicodeString(text)
+
                     // console.log(text);
+                    
                     let tmp_data=text;
+                    
                     tmp_data = extract_info(tmp_data);
                     tmp_data['current'] = request.current;
                     persist_tmp_data(tmp_data, req_url, request.current);
@@ -1147,3 +1154,33 @@ chrome.runtime.onInstalled.addListener(function (details) {
     }
     // console.log('onInstalled:',details)
 })
+
+
+// 16进制解码函数。 by vvak4
+function decodeHexString(source) {
+    if (typeof source !== 'string') {
+        throw new Error('输入参数必须是字符串类型');
+    }
+    
+    return source.replace(/\\x([0-9A-Fa-f]{2})/g, (match, hex) => 
+        String.fromCharCode(parseInt(hex, 16))
+    );
+}
+
+
+// Unicode解码函数。 by vvak4
+function decodeUnicodeString(source) {
+    if (typeof source !== 'string') {
+        throw new Error('输入参数必须是字符串类型');
+    }
+    
+    // 先处理扩展格式 \u{XXXXX}，再处理标准格式 \uXXXX
+    return source
+        .replace(/\\u\{([0-9A-Fa-f]{1,6})\}/gi, (match, hex) => {
+            const codePoint = parseInt(hex, 16);
+            return codePoint <= 0x10FFFF ? String.fromCodePoint(codePoint) : match;
+        })
+        .replace(/\\u([0-9A-Fa-f]{4})/gi, (match, hex) => 
+            String.fromCharCode(parseInt(hex, 16))
+        );
+}
